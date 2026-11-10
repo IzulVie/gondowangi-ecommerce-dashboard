@@ -219,7 +219,7 @@
                 v-model="formData.price"
                 type="number"
                 min="1"
-                step="1000"
+                step="1"
                 placeholder="Contoh: 45000"
                 :disabled="isSubmitting"
               />
