@@ -1,125 +1,123 @@
 <template>
-  <div class="flex min-h-screen">
-    <!-- Desktop Sidebar (Hidden on mobile) -->
-    <aside class="hidden lg:flex lg:flex-col lg:w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
-      <div class="flex items-center gap-3 px-6 h-16 border-b border-slate-200 dark:border-slate-800">
-        <div class="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+  <div class="flex min-h-screen bg-zinc-50/40 dark:bg-zinc-950">
+    <!-- Desktop Sidebar (shadcn / Linear style) -->
+    <aside class="hidden lg:flex lg:flex-col lg:w-60 border-r border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-950/60 shrink-0">
+      <!-- Brand Header -->
+      <div class="flex items-center gap-2.5 px-5 h-14 border-b border-zinc-200/80 dark:border-zinc-800">
+        <div class="w-6 h-6 rounded-md bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 font-bold text-xs tracking-tight">
           G
         </div>
-        <div>
-          <h1 class="text-base font-semibold leading-tight text-slate-900 dark:text-white">Gondowangi</h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Admin Dashboard</p>
+        <div class="min-w-0 flex items-baseline gap-1.5">
+          <span class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Gondowangi</span>
+          <span class="text-[11px] text-zinc-400 font-normal">Admin</span>
         </div>
       </div>
 
       <!-- Navigation Links -->
-      <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+      <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         <NuxtLink
           v-for="item in navItems"
           :key="item.path"
           :to="item.path"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+          class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors"
           :class="route.path === item.path
-            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'"
+            ? 'bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 shadow-2xs'
+            : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200/40 dark:hover:bg-zinc-800/40'"
         >
-          <UIcon :name="item.icon" class="w-5 h-5" />
+          <UIcon :name="item.icon" class="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400" />
           <span>{{ item.label }}</span>
         </NuxtLink>
       </nav>
 
-      <!-- User Profile & Logout -->
-      <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-semibold text-xs shrink-0">
+      <!-- User Profile & Logout Section -->
+      <div class="p-3 border-t border-zinc-200/80 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/40">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center font-medium text-[10px] shrink-0">
               {{ userInitials }}
             </div>
             <div class="min-w-0">
-              <p class="text-sm font-medium text-slate-900 dark:text-white truncate">
+              <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 truncate">
                 {{ user?.name || 'User' }}
               </p>
-              <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+              <p class="text-[11px] text-zinc-400 truncate">
                 {{ user?.email }}
               </p>
             </div>
           </div>
-          <UBadge
-            :color="user?.role === 'ADMIN' ? 'purple' : 'gray'"
-            variant="subtle"
-            size="xs"
-            class="font-semibold uppercase tracking-wider shrink-0"
+          <span
+            class="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded border shrink-0"
+            :class="user?.role === 'ADMIN'
+              ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-transparent'
+              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'"
           >
             {{ user?.role || 'STAFF' }}
-          </UBadge>
+          </span>
         </div>
         <UButton
           icon="i-heroicons-arrow-right-on-rectangle"
           color="gray"
           variant="ghost"
           block
-          size="sm"
+          size="xs"
           :loading="isLoggingOut"
+          class="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800"
           @click="handleLogout"
         >
-          Keluar (Logout)
+          Keluar
         </UButton>
       </div>
     </aside>
 
-    <!-- Mobile Drawer (USlideover) -->
+    <!-- Mobile Slideover Drawer -->
     <USlideover v-model="isMobileDrawerOpen" side="left">
-      <div class="flex flex-col h-full bg-white dark:bg-slate-900">
-        <div class="flex items-center justify-between px-6 h-16 border-b border-slate-200 dark:border-slate-800">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
+      <div class="flex flex-col h-full bg-white dark:bg-zinc-950">
+        <div class="flex items-center justify-between px-5 h-14 border-b border-zinc-200/80 dark:border-zinc-800">
+          <div class="flex items-center gap-2.5">
+            <div class="w-6 h-6 rounded-md bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 font-bold text-xs">
               G
             </div>
-            <span class="font-semibold text-slate-900 dark:text-white">Gondowangi Admin</span>
+            <span class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Gondowangi Admin</span>
           </div>
           <UButton
             icon="i-heroicons-x-mark"
             color="gray"
             variant="ghost"
-            size="sm"
+            size="xs"
             @click="isMobileDrawerOpen = false"
           />
         </div>
 
-        <nav class="flex-1 px-4 py-6 space-y-1">
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
           <NuxtLink
             v-for="item in navItems"
             :key="item.path"
             :to="item.path"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+            class="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors"
             :class="route.path === item.path
-              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'"
+              ? 'bg-zinc-200/70 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800'"
             @click="isMobileDrawerOpen = false"
           >
-            <UIcon :name="item.icon" class="w-5 h-5" />
+            <UIcon :name="item.icon" class="w-4 h-4 text-zinc-500" />
             <span>{{ item.label }}</span>
           </NuxtLink>
         </nav>
 
-        <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+        <div class="p-4 border-t border-zinc-200/80 dark:border-zinc-800">
           <div class="flex items-center justify-between mb-3">
             <div class="min-w-0">
-              <p class="text-sm font-medium text-slate-900 dark:text-white truncate">
-                {{ user?.name }}
-              </p>
-              <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
-                {{ user?.email }}
-              </p>
+              <p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 truncate">{{ user?.name }}</p>
+              <p class="text-[11px] text-zinc-400 truncate">{{ user?.email }}</p>
             </div>
-            <UBadge
-              :color="user?.role === 'ADMIN' ? 'purple' : 'gray'"
-              variant="subtle"
-              size="xs"
-              class="font-semibold uppercase"
+            <span
+              class="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded border"
+              :class="user?.role === 'ADMIN'
+                ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-transparent'
+                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'"
             >
               {{ user?.role }}
-            </UBadge>
+            </span>
           </div>
           <UButton
             icon="i-heroicons-arrow-right-on-rectangle"
@@ -130,7 +128,7 @@
             :loading="isLoggingOut"
             @click="handleLogout"
           >
-            Keluar (Logout)
+            Keluar
           </UButton>
         </div>
       </div>
@@ -139,41 +137,35 @@
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col min-w-0">
       <!-- Top Header -->
-      <header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 sm:px-6 flex items-center justify-between shrink-0">
+      <header class="h-14 border-b border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-sm px-4 sm:px-6 flex items-center justify-between shrink-0 sticky top-0 z-10">
         <div class="flex items-center gap-3">
-          <!-- Mobile Menu Toggle Button -->
           <UButton
             class="lg:hidden"
             icon="i-heroicons-bars-3"
             color="gray"
             variant="ghost"
+            size="xs"
             aria-label="Buka Menu"
             @click="isMobileDrawerOpen = true"
           />
-          <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+          <h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
             {{ currentPageTitle }}
           </h2>
         </div>
 
-        <div class="flex items-center gap-3">
-          <!-- User info quick pill on desktop header -->
-          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>{{ user?.email }}</span>
-            <UBadge
-              :color="user?.role === 'ADMIN' ? 'purple' : 'gray'"
-              variant="solid"
-              size="xs"
-              class="ml-1 uppercase text-[10px]"
-            >
-              {{ user?.role }}
-            </UBadge>
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 px-2.5 py-1 rounded-md border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-xs text-zinc-600 dark:text-zinc-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span class="truncate max-w-[140px] sm:max-w-[200px]">{{ user?.email }}</span>
+            <span class="text-[10px] uppercase font-semibold text-zinc-400">
+              ({{ user?.role }})
+            </span>
           </div>
         </div>
       </header>
 
       <!-- Main Body -->
-      <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto overflow-y-auto">
+      <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto overflow-y-auto">
         <slot />
       </main>
     </div>
@@ -189,15 +181,15 @@ const isMobileDrawerOpen = ref(false)
 const isLoggingOut = ref(false)
 
 const navItems = [
-  { label: 'Dashboard', path: '/', icon: 'i-heroicons-home' },
+  { label: 'Dashboard', path: '/', icon: 'i-heroicons-squares-2x2' },
   { label: 'Produk', path: '/products', icon: 'i-heroicons-cube' },
-  { label: 'Pesanan (Orders)', path: '/orders', icon: 'i-heroicons-shopping-bag' }
+  { label: 'Pesanan', path: '/orders', icon: 'i-heroicons-shopping-bag' }
 ]
 
 const currentPageTitle = computed(() => {
-  if (route.path === '/') return 'Ringkasan Dashboard'
-  if (route.path.startsWith('/products')) return 'Manajemen Produk'
-  if (route.path.startsWith('/orders')) return 'Manajemen Pesanan'
+  if (route.path === '/') return 'Dashboard'
+  if (route.path.startsWith('/products')) return 'Produk'
+  if (route.path.startsWith('/orders')) return 'Pesanan'
   return 'Gondowangi Admin'
 })
 
@@ -217,9 +209,9 @@ async function handleLogout() {
     await $fetch('/api/auth/logout', { method: 'POST' })
     await clear()
     toast.add({
-      title: 'Sampai Jumpa',
-      description: 'Anda telah berhasil keluar dari akun',
-      color: 'green'
+      title: 'Berhasil Keluar',
+      description: 'Sesi akun Anda telah berakhir',
+      color: 'gray'
     })
     navigateTo('/login')
   } catch (error: any) {
@@ -233,4 +225,3 @@ async function handleLogout() {
   }
 }
 </script>
-
