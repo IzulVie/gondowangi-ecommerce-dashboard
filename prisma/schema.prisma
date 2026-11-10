@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum OrderStatus {
+  pending
+  processing
+  completed
+  cancelled
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(STAFF)
+  createdAt    DateTime @default(now())
+}
+
+model Product {
+  id         String      @id @default(cuid())
+  name       String
+  category   String
+  price      Int         // Stored in IDR (Positive Integer > 0)
+  stock      Int         // Non-negative integer >= 0
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  orderItems OrderItem[]
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  orderNumber  String      @unique // e.g., ORD-20261110-001
+  customerName String
+  status       OrderStatus @default(pending)
+  total        Int         // Total order value in IDR
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  items        OrderItem[]
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String   // Snapshot of product name to survive Product deletion
+  unitPrice   Int      // Snapshot of unit price in IDR
+  quantity    Int      // Positive integer >= 1
+}
+
