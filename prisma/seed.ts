@@ -4,20 +4,22 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Starting database seeding...')
+  console.log('🌱 Starting database reset & seeding...')
 
-  // 1. Seed Demo Users
+  // 1. Clean up existing database records in foreign-key safe order
+  console.log('🧹 Cleaning up existing database records...')
+  await prisma.orderItem.deleteMany()
+  await prisma.order.deleteMany()
+  await prisma.product.deleteMany()
+  await prisma.user.deleteMany()
+  console.log('✨ All old records cleared successfully.')
+
+  // 2. Seed Demo Users
   const adminPasswordHash = await bcrypt.hash('AdminDemo123!', 10)
   const staffPasswordHash = await bcrypt.hash('StaffDemo123!', 10)
 
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@example.com' },
-    update: {
-      name: 'Admin Gondowangi',
-      passwordHash: adminPasswordHash,
-      role: Role.ADMIN
-    },
-    create: {
+  const admin = await prisma.user.create({
+    data: {
       email: 'admin@example.com',
       name: 'Admin Gondowangi',
       passwordHash: adminPasswordHash,
@@ -25,14 +27,8 @@ async function main() {
     }
   })
 
-  const staff = await prisma.user.upsert({
-    where: { email: 'staff@example.com' },
-    update: {
-      name: 'Staff Gondowangi',
-      passwordHash: staffPasswordHash,
-      role: Role.STAFF
-    },
-    create: {
+  const staff = await prisma.user.create({
+    data: {
       email: 'staff@example.com',
       name: 'Staff Gondowangi',
       passwordHash: staffPasswordHash,
@@ -42,7 +38,7 @@ async function main() {
 
   console.log(`✅ Seeded users: ${admin.email} (ADMIN), ${staff.email} (STAFF)`)
 
-  // 2. Seed Products (11 products across Haircare, Skincare, Bodycare; 3 with stock < 5)
+  // 3. Seed Products (11 products across Haircare, Skincare, Bodycare; 3 with stock < 5)
   const productData = [
     {
       name: 'Natur Hair Tonic Ginseng Extract 90ml',
@@ -115,27 +111,15 @@ async function main() {
   const createdProducts: Record<string, any> = {}
 
   for (const item of productData) {
-    const existing = await prisma.product.findFirst({
-      where: { name: item.name }
+    const created = await prisma.product.create({
+      data: item
     })
-
-    if (existing) {
-      const updated = await prisma.product.update({
-        where: { id: existing.id },
-        data: item
-      })
-      createdProducts[item.name] = updated
-    } else {
-      const created = await prisma.product.create({
-        data: item
-      })
-      createdProducts[item.name] = created
-    }
+    createdProducts[item.name] = created
   }
 
   console.log(`✅ Seeded ${Object.keys(createdProducts).length} products`)
 
-  // 3. Seed Orders (8 orders across pending, processing, completed, cancelled)
+  // 4. Seed Orders (8 orders across pending, processing, completed, cancelled)
   const orderData = [
     {
       orderNumber: 'ORD-20261110-001',
@@ -211,7 +195,6 @@ async function main() {
   ]
 
   for (const o of orderData) {
-    // Calculate total and prepare item snapshots
     let total = 0
     const itemsToCreate = []
 
@@ -227,44 +210,21 @@ async function main() {
       })
     }
 
-    const existingOrder = await prisma.order.findUnique({
-      where: { orderNumber: o.orderNumber },
-      include: { items: true }
+    await prisma.order.create({
+      data: {
+        orderNumber: o.orderNumber,
+        customerName: o.customerName,
+        status: o.status,
+        total,
+        items: {
+          create: itemsToCreate
+        }
+      }
     })
-
-    if (existingOrder) {
-      // Clean up previous items and re-create to maintain idempotency
-      await prisma.orderItem.deleteMany({
-        where: { orderId: existingOrder.id }
-      })
-      await prisma.order.update({
-        where: { id: existingOrder.id },
-        data: {
-          customerName: o.customerName,
-          status: o.status,
-          total,
-          items: {
-            create: itemsToCreate
-          }
-        }
-      })
-    } else {
-      await prisma.order.create({
-        data: {
-          orderNumber: o.orderNumber,
-          customerName: o.customerName,
-          status: o.status,
-          total,
-          items: {
-            create: itemsToCreate
-          }
-        }
-      })
-    }
   }
 
   console.log(`✅ Seeded ${orderData.length} orders with items and calculated totals`)
-  console.log('🎉 Seeding completed successfully!')
+  console.log('🎉 Reset and seeding completed successfully!')
 }
 
 main()
@@ -275,4 +235,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
-
